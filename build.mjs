@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const out='dist';
 fs.rmSync(out,{recursive:true,force:true}); fs.mkdirSync(out,{recursive:true});
-const origin='https://marginflips-tools.peachy-lark-8663.chatgpt.site';
+const origin='https://marginflips.vercel.app';
 const buy='https://payhip.com/b/pTi34';
 const brand='MarginFlips';
 
