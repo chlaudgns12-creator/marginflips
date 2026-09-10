@@ -28,3 +28,32 @@ for(const file of fs.readdirSync('.',{recursive:true}).filter(f=>!f.split(/[\\/]
  if(fs.statSync(file).isFile()&&retiredHosts.some(host=>fs.readFileSync(file,'utf8').includes(host)))throw new Error(`Retired host remains: ${file}`);
 }
 console.log(`PASS: ${pageUrls.size} sitemap pages; all page SEO and internal links; Google verification; custom 404; Cloudflare configuration; source/dist retired-host scan.`);
+
+// Production Cycle 1: one new guide, with its examples checked against the unchanged calculators.
+const guideRoute='/guides/ebay-sold-comps/';
+const guide=fs.readFileSync(`dist${guideRoute}index.html`,'utf8');
+if(!fs.readFileSync('dist/guides/index.html','utf8').includes(`href="${guideRoute}"`)||!pageUrls.has(origin+guideRoute))throw new Error('Sold comps guide is not discoverable');
+if((guide.match(/<h1>/g)||[]).length!==1||/<(?:form|input)\b/.test(guide))throw new Error('Guide structure regressed');
+if(!guide.includes('Illustrative numbers only')||!guide.includes('https://www.ebay.com/sch/ebayadvsearch')||!guide.includes('https://www.ebay.com/help/selling/selling-tools/product-research?id=4853'))throw new Error('Guide example disclosure or sources missing');
+const renderCalculation=(kind,values)=>vm.runInContext(`calc(${JSON.stringify(kind)},${JSON.stringify(values)})`,sandbox);
+for(const [sale,expected] of [[38,'$14.76'],[40,'$16.50']]){
+ const result=renderCalculation('max-buy',{sale,feePct:13,fixed:0.3,shipping:6,targetProfit:12,targetRoi:0});
+ if(!result.includes(expected)||!guide.includes(expected))throw new Error('Sold comps worked example mismatch');
+}
+const calculatorCases=[
+ ['profit',{sale:80,cost:24,feePct:13,fixed:0.3,shipping:8.5,pack:1.2,ad:2,prep:0,other:0},'$33.60'],
+ ['roi',{investment:30,profit:25},'83.33%'],
+ ['break-even',{cost:24,fixed:0.3,shipping:8.5,other:1.2,feePct:15},'$40.00'],
+ ['max-buy',{sale:38,feePct:13,fixed:0.3,shipping:6,targetProfit:12,targetRoi:0},'$14.76'],
+ ['marketplace-fee',{sale:80,cost:24,feePct:13,fixed:0.3,shipping:8.5,other:1.2},'$35.60'],
+ ['offer',{list:90,offer:72,cost:24,feePct:13,fixed:0.3,shipping:8.5,other:1.2,minProfit:20,minRoi:0},'MEETS TARGET']
+];
+for(const [kind,values,expected] of calculatorCases){
+ if(!renderCalculation(kind,values).includes(expected))throw new Error(`Normal scenario failed: ${kind}`);
+ const zero=Object.fromEntries(Object.keys(values).map(key=>[key,0]));
+ if(/NaN|Infinity/.test(renderCalculation(kind,zero)))throw new Error(`Zero boundary failed: ${kind}`);
+ for(const key of Object.keys(values))for(const invalid of [NaN,Infinity,-Infinity])if(isValidInput(kind,key,invalid))throw new Error(`Nonfinite input accepted: ${kind}/${key}`);
+ for(const key of Object.keys(values))if(!(kind==='roi'&&key==='profit')&&isValidInput(kind,key,-1))throw new Error(`Negative input accepted: ${kind}/${key}`);
+ if(['break-even','max-buy'].includes(kind))for(const feePct of [100,101])if(!renderCalculation(kind,{...values,feePct}).includes('Not possible'))throw new Error(`Reverse fee guard failed: ${kind}`);
+}
+console.log('PASS: sold comps guide discovery, sources, illustrative examples; six calculator normal/zero/nonfinite/negative checks and reverse-fee boundaries.');
