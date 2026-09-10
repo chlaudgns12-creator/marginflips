@@ -55,5 +55,4 @@ fs.copyFileSync('src/style.css',path.join(out,'assets/style.css')); fs.copyFileS
 fs.writeFileSync(path.join(out,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 const urls=['/','/tools/','/guides/','/product/','/resources/','/about/','/contact/','/privacy/','/terms/','/disclaimer/',...tools.map(x=>`/tools/${x[0]}/`),...guides.map(x=>`/guides/${x.slug}/`)];
 fs.writeFileSync(path.join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u=>`<url><loc>${origin}${u}</loc></url>`).join('')}</urlset>`);
-fs.writeFileSync(path.join(out,'_redirects'),`/404.html /404/index.html 404\n`);
 console.log(`Built ${urls.length} crawlable pages plus 404.`);
