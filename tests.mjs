@@ -57,3 +57,17 @@ for(const [kind,values,expected] of calculatorCases){
  if(['break-even','max-buy'].includes(kind))for(const feePct of [100,101])if(!renderCalculation(kind,{...values,feePct}).includes('Not possible'))throw new Error(`Reverse fee guard failed: ${kind}`);
 }
 console.log('PASS: sold comps guide discovery, sources, illustrative examples; six calculator normal/zero/nonfinite/negative checks and reverse-fee boundaries.');
+
+// Production Cycle 2: ensure the review guide's numbers agree with the tools it recommends.
+const staleRoute='/guides/stale-ebay-inventory/';
+const staleGuide=fs.readFileSync(`dist${staleRoute}index.html`,'utf8');
+if(!pageUrls.has(origin+staleRoute)||!fs.readFileSync('dist/guides/index.html','utf8').includes(`href="${staleRoute}"`))throw new Error('Stale inventory guide is not discoverable');
+for(const link of ['/tools/offer/','/tools/break-even/','/tools/profit/','/guides/ebay-sold-comps/','/product/'])if(!staleGuide.includes(`href="${link}"`))throw new Error(`Missing workflow link: ${link}`);
+for(const [sale,expected] of [[60,'$22.70'],[50,'$14.00'],[45,'$9.65']]){
+ const result=renderCalculation('profit',{sale,cost:20,feePct:13,fixed:0.3,shipping:8,pack:1.2,ad:0,prep:0,other:0});
+ if(!result.includes(expected)||!staleGuide.includes(expected))throw new Error(`Markdown example mismatch: ${sale}`);
+}
+const offerBase={list:60,cost:20,feePct:13,fixed:0.3,shipping:8,other:1.2,minProfit:10,minRoi:0};
+if(!renderCalculation('offer',{...offerBase,offer:45}).includes('BELOW TARGET')||!renderCalculation('offer',{...offerBase,offer:50}).includes('MEETS TARGET'))throw new Error('Markdown profit-floor decision mismatch');
+if(!renderCalculation('break-even',{cost:20,feePct:13,fixed:0.3,shipping:8,other:1.2}).includes('$33.91')||!staleGuide.includes('$33.91'))throw new Error('Markdown break-even example mismatch');
+console.log('PASS: stale inventory guide discovery, workflow links, three profit examples, target decisions and break-even example.');

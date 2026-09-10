@@ -1,5 +1,32 @@
 # MarginFlips V1 — QA Report
 
+## Production Cycle 2 — 2026-09-11
+
+Added one guide: `/guides/stale-ebay-inventory/` — **How to Handle Stale eBay Inventory**. Production Tools, Guides, the Cycle 1 sold-comps guide, and the $9.99 product page were inspected in the browser before selection. Baseline: six calculators, nine guides, 25 sitemap URLs. Result: six calculators, ten guides, 26 sitemap URLs.
+
+Candidate comparison (editorial assessment, not measured search volume):
+
+| Candidate | Practical/search intent | Overlap and tool connection | Workbook fit | Decision |
+| --- | --- | --- | --- | --- |
+| Lot cost allocation calculator | Assign a bulk purchase cost across inventory; recurring reseller question | Distinct, but a simple equal split is insufficient for mixed-value lots; needs a clearly chosen allocation method | Sourcing and sales records | Useful future candidate; narrower than the selected workflow |
+| Markdown profit calculator | Understand profit after a price cut | Largely duplicates entering a lower price in the existing Offer Calculator | Offer Analyzer | Do not create a redundant calculator |
+| Stale inventory review guide | Decide what to do with unsold stock and when a reduction makes sense | Adds post-listing diagnosis and action review, then uses sold comps, Offer, Break-Even and Profit tools | Offer Analyzer plus sourcing/sales records | Selected: actionable workflow beyond a single calculation |
+
+Problem research included recurring seller questions about [aging inventory reductions](https://www.reddit.com/r/eBaySellerAdvice/comments/12iftnr) and [repricing listings](https://www.reddit.com/r/Flipping/comments/1bbahyl). These are qualitative intent signals only, not evidence for universal timing or performance claims. The guide uses original editorial wording, no copied discussion text, and no ranking or revenue promises.
+
+Product facts are supported in context by [eBay Seller Hub](https://www.ebay.com/help/selling/selling-tools/seller-hub?id=4095), [Page views](https://www.ebay.com/help/selling/listing-tips/listings/page-views?id=4165), and [Revise a listing](https://www.ebay.com/help/selling/listings/creating-managing-listings/revising-listing?id=4356). Hypothetical example amounts are explicitly identified; the 30-day page-view window is sourced. Review cadence is left to category and seller constraints.
+
+QA results:
+
+- Build and all existing regression tests: PASS. All 26 sitemap pages have consistent canonical, og:url and structured-data URLs; internal links, robots, verification, custom 404 and hosting configuration checks pass.
+- New guide examples: independent integer-cent arithmetic and existing calculator output agree on $22.70/$14.00/$9.65 profit, $13.05 profit reduction, 25% markdown and approximately $33.91 break-even. Offer targets at $45 and $50 are checked in regression tests and in the browser.
+- Visual QA: full-page desktop 1440 x 900 and mobile 390 x 844 inspected; headings, formulas, lists and CTA remain legible in the existing layout. No horizontal overflow at 390px or 320px. Mobile menu works. Guides-to-guide-and-back and guide-to-Offer navigation work. No observed browser console errors.
+- New page has one H1 and no input form; calculator-specific new-input QA does not apply. Existing six-calculator normal/zero/nonfinite/negative and reverse-fee regression checks remain PASS.
+- Scope comparison against the Cycle 1 commit: exactly one new sitemap URL; 33 existing artifacts/source/config files unchanged after normalizing line endings, excluding only the intentionally updated Guides listing and sitemap. Homepage, existing guide contents, all calculator formulas, CSS, product price, Payhip links and robots remain unchanged.
+- `git diff --check`: PASS. Changes are limited to build.mjs, tests.mjs, this QA record, the new generated guide, Guides listing and sitemap.
+
+Production handoff: confirm the Cloudflare deployment for the pushed commit completes, then verify the guide route, Guides listing, mobile menu/readability, related free-tool links, unchanged $9.99 Payhip CTA, and SEO/sitemap values. Local PASS does not claim that the new production deployment has finished.
+
 ## Production Cycle 1 — 2026-09-11
 
 Added one crawlable page: `/guides/ebay-sold-comps/` (24 to 25 sitemap URLs; six calculators unchanged). The existing guide template supplies navigation, typography, Article JSON-LD, canonical, og:url, and the unchanged $9.99 Payhip CTA. The Guides index and sitemap include the guide automatically.
