@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const out='dist';
 fs.rmSync(out,{recursive:true,force:true}); fs.mkdirSync(out,{recursive:true});
-const origin='https://marginflips.vercel.app';
+const origin='https://marginflips.reselltools.workers.dev';
 const buy='https://payhip.com/b/pTi34';
 const brand='MarginFlips';
 
@@ -55,4 +55,6 @@ fs.copyFileSync('src/style.css',path.join(out,'assets/style.css')); fs.copyFileS
 fs.writeFileSync(path.join(out,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 const urls=['/','/tools/','/guides/','/product/','/resources/','/about/','/contact/','/privacy/','/terms/','/disclaimer/',...tools.map(x=>`/tools/${x[0]}/`),...guides.map(x=>`/guides/${x.slug}/`)];
 fs.writeFileSync(path.join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u=>`<url><loc>${origin}${u}</loc></url>`).join('')}</urlset>`);
+fs.copyFileSync(path.join(out,'404/index.html'),path.join(out,'404.html'));
+fs.writeFileSync(path.join(out,'googlec73a8467744961cf.html'),'google-site-verification: googlec73a8467744961cf.html');
 console.log(`Built ${urls.length} crawlable pages plus 404.`);
