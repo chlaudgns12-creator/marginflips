@@ -1,5 +1,32 @@
 # MarginFlips V1 — QA Report
 
+## Production Cycle 3 — 2026-09-11
+
+Added one guide: `/guides/buy-untested-electronics/` — **Should You Buy Untested Electronics to Resell?** Baseline review covered the six calculator implementations, ten guide bodies including both recent guides, and the product page; production Tools, Guides and product pages were also inspected in the browser. The new guide adds a condition-evidence decision process rather than another fee calculation or a repeat of general sold-comps advice.
+
+Candidate comparison (qualitative editorial judgment, no search-volume claims):
+
+| Candidate | BUY/SKIP and repeat value | Duplication / evidence constraint | Product connection | Decision |
+| --- | --- | --- | --- | --- |
+| Risk-weighted sourcing calculator | Direct ceiling on repeated sourcing decisions | Requires defensible outcome probabilities; guessed repair-success percentages can conceal unacceptable downside | Maximum purchase price and sourcing log | Deferred; evidence-first guidance is more useful for this audience |
+| Repair-profit calculator | Direct, repeatable repair-vs-buy decision | Repair expense already fits existing Profit and Maximum Buy tools; a narrow wrapper adds little | Existing pricing workbook | Not selected |
+| Untested-electronics decision guide | Repeatable BUY / TEST FIRST / SKIP screen with condition-specific ceilings and loss limits | New specific sourcing use case; complements sold comps and broad sourcing checklist, distinct from post-listing stale inventory | Existing max-buy, Profit, Offer and sourcing/sales records | Selected |
+
+Search intent evidence: reseller discussions about [testing before purchase](https://www.reddit.com/r/Flipping/comments/1lbiqoo), [buying as-is](https://www.reddit.com/r/Flipping/comments/1lc241k), and [testing protocols](https://www.reddit.com/r/Flipping/comments/12nr84c) show recurring uncertainty about condition, testing and fallback value. These discussions inform topic selection, not statistical or marketplace-policy claims. A competitor scan found generic maximum-buy and repair/auction decision tools; no competitor wording, scoring rules or data were copied.
+
+The guide cites [eBay category condition definitions](https://www.ebay.com/help/selling/listings/creating-managing-listings/item-conditions-catagory?id=4765) for the factual condition distinction. Its original editorial workflow separates observed/reported/unknown facts, working/repair/parts outcomes, profit targets, acceptable losses, and the possibility that nothing sells. All example prices, fees and repairs are labeled hypothetical. The informational body contains one closing workbook paragraph; the existing CTA is reused unchanged.
+
+QA:
+
+- `npm run build` and `npm test`: PASS. Full existing regression, internal links, all 27 sitemap URLs, canonical/og:url/structured data, robots, verification and Cloudflare configuration pass.
+- Three scenario ceilings ($32.30, $7.30, $1.80) agree with existing calculator outputs and independent integer-cent arithmetic. Fallback loss (-$8.20) and loss-limit ceiling ($16.80) independently checked. Browser repair scenario returns $7.30.
+- Desktop 1440 x 900 and mobile 390 x 844 full-page visuals inspected: existing typography, formulas, lists and CTA fit. No horizontal overflow at 390px or 320px. Mobile menu and Guides round trip pass; the Maximum Buy Price link opens the calculator. New guide has no input form, so new calculator-input QA is not applicable; existing numeric regression remains PASS.
+- Exact original Web Analytics snippet is present once immediately before `</body>` on all 29 rendered HTML documents (27 content routes and two existing 404 outputs). Google verification remains untouched. The new page's browser DOM also contains one beacon. This verifies preservation, not dashboard ingestion.
+- Existing generated pages, JS/CSS, robots, product price, Payhip links and hosting configuration are unchanged; only the Guides listing and sitemap change among existing site artifacts. Exactly one new crawlable route. Homepage unchanged. No new dependencies, services, accounts or server functionality.
+- `git diff --check`: PASS. Only build.mjs, tests.mjs, this report, Guides index, sitemap and the new generated guide are included.
+
+Production handoff: confirm Cloudflare deploys the pushed commit, then check the new route, Guides listing, mobile readability, calculator links, unchanged Payhip CTA, SEO/sitemap and Web Analytics dashboard receipt. Local QA does not assert deployment completion or analytics ingestion. No scheduled automation was created by this cycle.
+
 ## Production Cycle 2 — 2026-09-11
 
 Added one guide: `/guides/stale-ebay-inventory/` — **How to Handle Stale eBay Inventory**. Production Tools, Guides, the Cycle 1 sold-comps guide, and the $9.99 product page were inspected in the browser before selection. Baseline: six calculators, nine guides, 25 sitemap URLs. Result: six calculators, ten guides, 26 sitemap URLs.

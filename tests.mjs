@@ -71,3 +71,22 @@ const offerBase={list:60,cost:20,feePct:13,fixed:0.3,shipping:8,other:1.2,minPro
 if(!renderCalculation('offer',{...offerBase,offer:45}).includes('BELOW TARGET')||!renderCalculation('offer',{...offerBase,offer:50}).includes('MEETS TARGET'))throw new Error('Markdown profit-floor decision mismatch');
 if(!renderCalculation('break-even',{cost:20,feePct:13,fixed:0.3,shipping:8,other:1.2}).includes('$33.91')||!staleGuide.includes('$33.91'))throw new Error('Markdown break-even example mismatch');
 console.log('PASS: stale inventory guide discovery, workflow links, three profit examples, target decisions and break-even example.');
+
+// Cycle 3: scenario ceilings and downside must agree with the existing tools.
+const untestedRoute='/guides/buy-untested-electronics/';
+const untested=fs.readFileSync(`dist${untestedRoute}index.html`,'utf8');
+if(!pageUrls.has(origin+untestedRoute)||!fs.readFileSync('dist/guides/index.html','utf8').includes(`href="${untestedRoute}"`))throw new Error('Untested electronics guide not discoverable');
+for(const [sale,shipping,targetProfit,expected] of [[80,17,20,'$32.30'],[80,42,20,'$7.30'],[30,14,10,'$1.80']]){
+ if(!renderCalculation('max-buy',{sale,shipping,targetProfit,feePct:13,fixed:0.3,targetRoi:0}).includes(expected)||!untested.includes(expected))throw new Error('Untested scenario ceiling mismatch');
+}
+if(!renderCalculation('profit',{sale:30,cost:20,feePct:13,fixed:0.3,shipping:12,pack:2,ad:0,prep:0,other:0}).includes('-$8.20'))throw new Error('Fallback loss mismatch');
+// Independent integer-cent checks for the editorial loss-tolerance example.
+if(3000-390-30-1200-200-2000!==-820||3000-390-30-1400+500!==1680)throw new Error('Independent downside arithmetic failed');
+const beacon=`<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "eb6f2af08f834db380fe670c2e4ed31c"}'></script><!-- End Cloudflare Web Analytics -->`;
+let beaconPages=0;
+for(const file of fs.readdirSync('dist',{recursive:true}).filter(f=>f.endsWith('.html')&&f!==verification)){
+ const page=fs.readFileSync(`dist/${file}`,'utf8');
+ if(page.split('https://static.cloudflareinsights.com/beacon.min.js').length!==2||!page.includes(beacon+'</body>'))throw new Error(`Analytics missing, changed, duplicated or misplaced: ${file}`);
+ beaconPages++;
+}
+console.log(`PASS: untested electronics scenarios and downside; exact Web Analytics snippet once before body close on ${beaconPages} pages.`);
