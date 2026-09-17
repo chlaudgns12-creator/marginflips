@@ -93,3 +93,20 @@ for(const file of fs.readdirSync('dist',{recursive:true}).filter(f=>f.endsWith('
  beaconPages++;
 }
 console.log(`PASS: untested electronics scenarios and downside; exact Web Analytics snippet once before body close on ${beaconPages} pages.`);
+
+// HTTP-only transport redirect; HTTPS keeps the existing asset response untouched.
+const {default:worker}=await import('./src/worker.js');
+if(config.main!=='src/worker.js'||config.assets.binding!=='ASSETS'||config.assets.run_worker_first!==true)throw new Error('HTTPS redirect must run before assets');
+for(const method of ['GET','HEAD','POST'])for(const route of ['/','/tools/roi/','/guides/ebay-sold-comps/','/?test=1','/tools/roi/?x=1&x=2&encoded=%2F+a','/this-page-does-not-exist-92831','/404/']){
+ const request=new Request(`http://marginflips.reselltools.workers.dev${route}`,{method});
+ const response=await worker.fetch(request,{ASSETS:{fetch(){throw new Error('HTTP request reached assets');}}});
+ if(response.status!==308||response.headers.get('Location')!==request.url.replace(/^http:/,'https:'))throw new Error('HTTP redirect lost path/query or permanent status');
+}
+for(const status of [200,307,404]){
+ const request=new Request(origin+(status===307?'/404/':status===404?'/this-page-does-not-exist-92831':'/'));
+ const assetResponse=new Response('unchanged assets',{status,headers:status===307?{Location:'/404'}:{'X-Test':'preserved'}});
+ let calls=0;
+ const result=await worker.fetch(request,{ASSETS:{fetch(input){calls++;if(input!==request)throw new Error('HTTPS request changed');return assetResponse;}}});
+ if(result!==assetResponse||calls!==1)throw new Error('HTTPS asset response changed');
+}
+console.log('PASS: HTTP 308 preserves path/query and methods; HTTPS 200/307/404 asset responses pass through unchanged.');
