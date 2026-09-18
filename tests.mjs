@@ -94,7 +94,7 @@ for(const file of fs.readdirSync('dist',{recursive:true}).filter(f=>f.endsWith('
 }
 console.log(`PASS: untested electronics scenarios and downside; exact Web Analytics snippet once before body close on ${beaconPages} pages.`);
 
-// HTTP-only transport redirect; HTTPS keeps the existing asset response untouched.
+// HTTP-only transport redirect; HTTPS preserves assets and adds only four security headers.
 const {default:worker}=await import('./src/worker.js');
 if(config.main!=='src/worker.js'||config.assets.binding!=='ASSETS'||config.assets.run_worker_first!==true)throw new Error('HTTPS redirect must run before assets');
 for(const method of ['GET','HEAD','POST'])for(const route of ['/','/tools/roi/','/guides/ebay-sold-comps/','/?test=1','/tools/roi/?x=1&x=2&encoded=%2F+a','/this-page-does-not-exist-92831','/404/']){
@@ -102,11 +102,17 @@ for(const method of ['GET','HEAD','POST'])for(const route of ['/','/tools/roi/',
  const response=await worker.fetch(request,{ASSETS:{fetch(){throw new Error('HTTP request reached assets');}}});
  if(response.status!==308||response.headers.get('Location')!==request.url.replace(/^http:/,'https:'))throw new Error('HTTP redirect lost path/query or permanent status');
 }
-for(const status of [200,307,404]){
+const securityHeaders={'x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','x-frame-options':'DENY','permissions-policy':'camera=(), microphone=(), geolocation=()'};
+for(const status of [200,206,304,307,404]){
  const request=new Request(origin+(status===307?'/404/':status===404?'/this-page-does-not-exist-92831':'/'));
- const assetResponse=new Response('unchanged assets',{status,headers:status===307?{Location:'/404'}:{'X-Test':'preserved'}});
+ const body=status===304?null:'unchanged assets';
+ const assetResponse=new Response(body,{status,statusText:'Original status',headers:{'Content-Type':'text/plain','Cache-Control':'public, max-age=0, must-revalidate','ETag':'original','X-Test':'preserved',...(status===307?{Location:'/404'}:{})}});
+ const expectedHeaders=new Headers(assetResponse.headers);
+ for(const [key,value] of Object.entries(securityHeaders))expectedHeaders.set(key,value);
  let calls=0;
  const result=await worker.fetch(request,{ASSETS:{fetch(input){calls++;if(input!==request)throw new Error('HTTPS request changed');return assetResponse;}}});
- if(result!==assetResponse||calls!==1)throw new Error('HTTPS asset response changed');
+ if(calls!==1||result.status!==status||result.statusText!==assetResponse.statusText||await result.text()!==(body??''))throw new Error('HTTPS asset status/body changed');
+ if(JSON.stringify([...result.headers])!==JSON.stringify([...expectedHeaders]))throw new Error('Unexpected security, cache, CORS or original header change');
+ for(const key of Object.keys(securityHeaders))if(assetResponse.headers.has(key))throw new Error('Original asset headers mutated');
 }
-console.log('PASS: HTTP 308 preserves path/query and methods; HTTPS 200/307/404 asset responses pass through unchanged.');
+console.log('PASS: HTTP 308 preserves path/query and methods; HTTPS asset body/status/statusText/original headers preserved; exactly four security headers added.');
